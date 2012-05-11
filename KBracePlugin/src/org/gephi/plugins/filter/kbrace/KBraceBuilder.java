@@ -59,7 +59,7 @@ import org.openide.util.lookup.ServiceProvider;
 
 /**
  *
- * @author mbastian
+ * @author Mathieu Bastian
  */
 @ServiceProvider(service = FilterBuilder.class)
 public class KBraceBuilder implements FilterBuilder {
