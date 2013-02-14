@@ -151,6 +151,8 @@ public class SeadragonExporterUI implements ExporterClassUI {
 
         final String LAST_WIDTH = "SeadragonExporterUI_Last_Width";
         final String LAST_HEIGHT = "SeadragonExporterUI_Last_Height";
+        final String LAST_VIEWWIDTH = "SeadragonExporterUI_Last_ViewWidth";
+        final String LAST_VIEWHEIGHT = "SeadragonExporterUI_Last_ViewHeight";
         final String LAST_MARGIN = "SeadragonExporterUI_Last_Margin";
         final String LAST_TILESIZE = "SeadragonExporterUI_Last_TileSize";
         private int overlap = 1;
@@ -158,6 +160,9 @@ public class SeadragonExporterUI implements ExporterClassUI {
         private int height = 6144;
         private int tileSize = 256;
         private int margin = 4;
+        private int viewHeight = 800;
+        private int viewWidth = 1260;
+        
 
         public void save(SeadragonExporter exporter) {
             this.overlap = exporter.getOverlap();
@@ -170,6 +175,8 @@ public class SeadragonExporterUI implements ExporterClassUI {
             NbPreferences.forModule(SeadragonExporterUI.class).putInt(LAST_HEIGHT, height);
             NbPreferences.forModule(SeadragonExporterUI.class).putFloat(LAST_MARGIN, margin);
             NbPreferences.forModule(SeadragonExporterUI.class).putInt(LAST_TILESIZE, tileSize);
+            NbPreferences.forModule(SeadragonExporterUI.class).putInt(LAST_VIEWHEIGHT, viewHeight);
+            NbPreferences.forModule(SeadragonExporterUI.class).putInt(LAST_VIEWWIDTH, viewWidth);
         }
 
         public void load(SeadragonExporter exporter) {
@@ -177,12 +184,15 @@ public class SeadragonExporterUI implements ExporterClassUI {
             height = NbPreferences.forModule(SeadragonExporterUI.class).getInt(LAST_HEIGHT, height);
             margin = NbPreferences.forModule(SeadragonExporterUI.class).getInt(LAST_MARGIN, margin);
             tileSize = NbPreferences.forModule(SeadragonExporterUI.class).getInt(LAST_TILESIZE, tileSize);
-
+            viewHeight = NbPreferences.forModule(SeadragonExporterUI.class).getInt(LAST_VIEWHEIGHT, viewHeight);
+            viewWidth = NbPreferences.forModule(SeadragonExporterUI.class).getInt(LAST_VIEWWIDTH, viewWidth);
+            
             exporter.setOverlap(overlap);
             exporter.setWidth(width);
             exporter.setHeight(height);
             exporter.setTileSize(tileSize);
             exporter.setMargin(margin);
+            exporter.setView(viewHeight, viewWidth);
         }
     }
 }

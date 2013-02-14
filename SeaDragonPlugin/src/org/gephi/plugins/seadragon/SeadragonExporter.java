@@ -9,14 +9,21 @@
 package org.gephi.plugins.seadragon;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -40,6 +47,7 @@ import org.gephi.utils.progress.ProgressTicket;
 import org.openide.util.Lookup;
 import org.w3c.dom.Element;
 import processing.core.PGraphicsJava2D;
+import processing.core.PImage;
 
 /**
  *
@@ -64,11 +72,20 @@ public class SeadragonExporter implements Exporter, LongTask {
     private File path;
     private int overlap = 1;
     private int tileSize = 256;
+    private boolean bUseWalker = true;
+    private int viewWidth;
+    private int viewHeight;
     
     @Override
     public boolean execute() {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        
+        if(this.bUseWalker) { 
+            return execute_walker();
+        } else {
+            return execute_old();
+        }
+    }
+
+    private boolean execute_old() {
         Progress.start(progress);
         Progress.setDisplayName(progress, "Export Seadragon");
         
@@ -84,8 +101,8 @@ public class SeadragonExporter implements Exporter, LongTask {
         
         target.refresh();
         
+        // allocate whole requested buffer at once
         Progress.switchToIndeterminate(progress);
-        
         PGraphicsJava2D pg2 = (PGraphicsJava2D) target.getGraphics();
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         img.setRGB(0, 0, width, height, pg2.pixels, 0, width);
@@ -103,11 +120,113 @@ public class SeadragonExporter implements Exporter, LongTask {
         
         return !cancel;
     }
+
+    // allocate only small bitmaps a time
+    private boolean execute_walker() {
+
+        Progress.start(progress);
+        Progress.setDisplayName(progress, "Export Seadragon (Walker)");
+        
+        PreviewController controller = Lookup.getDefault().lookup(PreviewController.class);
+        controller.getModel(workspace).getProperties().putValue(PreviewProperty.VISIBILITY_RATIO, 1.0);
+        controller.refreshPreview(workspace);
+
+        // create directory that will contain tiles
+        File tiles = new File(path, PATH_MAP + File.separator + PATH_MAP + PATH_FILES);
+        tiles.mkdirs();
+
+        // number of zoom levels is log2(max dimension)
+        int numLevels = (int) Math.ceil(Math.log(Math.max(width, height)) / Math.log(2.));
+        
+        // count all tiles we're about to export
+        int tasks = 0;
+        for (int level = numLevels; level >= 0; level--) {
+            // scale = 1 / (2^x)
+            float levelScale = 1f / (1 << (numLevels - level));
+            tasks += (int) Math.ceil(levelScale * width / tileSize) * (int) Math.ceil(levelScale * height / tileSize);
+        }
+
+        Progress.switchToDeterminate(progress, tasks);
+
+        // for each level generate a canvas and save it to tiles
+        for (int level = numLevels; level >= 0 && !cancel; level--) {
+            // calculate the scale
+            float levelScale = 1f / (1 << (numLevels - level));
+            int levelw = (int)(width * levelScale);
+            int levelh = (int)(height * levelScale);
+            
+            // create destination folder
+            File levelFolder = new File(tiles.getAbsolutePath() + File.separator + level);
+            levelFolder.mkdirs();
+            
+            // create headless canvas according to
+            // http://gephi.org/docs/api/org/gephi/preview/api/ProcessingTarget.html
+            PreviewProperties props = controller.getModel(workspace).getProperties();
+            props.putValue("width", levelw);
+            props.putValue("height", levelh);
+            props.putValue(PreviewProperty.MARGIN, new Float((float) margin));
+            ProcessingTarget target = (ProcessingTarget) controller.getRenderTarget(RenderTarget.PROCESSING_TARGET, workspace);
+            target.refresh();
+
+            PGraphicsJava2D pg2 = (PGraphicsJava2D) target.getGraphics();
+
+            // for each tile export the pixels to png
+            int cols = (int) Math.ceil(levelw / tileSize);
+            int rows = (int) Math.ceil(levelh / tileSize);
+            for (int r = 0; r <= rows; r++) {
+                for (int c = 0; c <= cols; c++) {
+                    if (tileSize * c < levelw && tileSize * r < levelh) {
+                        int left = c != 0 ? tileSize * c - overlap : 0;
+                        int top = r != 0 ? tileSize * r - overlap : 0;
+                        int tileW = (int) (tileSize + (c == 0 ? 1 : 2) * (double) overlap);
+                        int tileH = (int) (tileSize + (r == 0 ? 1 : 2) * (double) overlap);
+                        tileW = Math.min(tileW, levelw - left);
+                        tileH = Math.min(tileH, levelh - top);
+
+                        // get the pixel data
+                        PImage tiledImage = pg2.get(left, top, tileW, tileH);
+                        BufferedImage tiledImageBI = new BufferedImage(tileW, tileH, BufferedImage.TYPE_INT_ARGB);
+                        
+                        tiledImage.loadPixels();
+                        tiledImageBI.setRGB(0, 0, tileW, tileH, tiledImage.pixels, 0, tileW);
+                        
+                        File fout = new File(levelFolder, c + "_" + r + ".png");
+                        try {
+                            ImageIO.write(tiledImageBI, "png", fout);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+/*                        
+                        //PImage tiledImage = new PImage(tileW, tileH);
+                        //pg2.copy(tiledImage, left, top, tileW, tileH, 0, 0, tileW, tileH);
+                        
+                        // save the pixels
+                        String outFile = levelFolder.getAbsolutePath() + File.separator + c + "_" + r + ".png";
+                        try {
+                            tiledImage.save(outFile);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+*/
+                        if (cancel) break;
+                        
+                        Progress.progress(progress);
+                    }
+                }
+            }
+        }
+       
+        createXML();
+        exportOtherFiles();
+        
+        Progress.finish(progress);
+        return !cancel;
+    }
     
     public void export(BufferedImage img) throws Exception {
         delete(new File(path, PATH_MAP));
         File folder = new File(path, PATH_MAP);
-        folder.mkdir();
+        folder.mkdirs();
         folder = new File(folder, PATH_MAP + PATH_FILES);
         folder.mkdir();
         
@@ -115,7 +234,7 @@ public class SeadragonExporter implements Exporter, LongTask {
         int w = img.getWidth();
         int h = img.getHeight();
         
-        //Calculate tasks count
+        // Calculate tasks count
         int tasks = 0;
         for (int level = numLevels; level >= 0; level--) {
             float levelScale = 1f / (1 << (numLevels - level));
@@ -177,7 +296,10 @@ public class SeadragonExporter implements Exporter, LongTask {
     
     private void exportOtherFiles() {
         try {
-            copyFromJar("seadragon.html", path);
+            HashMap hm = new HashMap();
+            hm.put("canvas_width", String.valueOf(viewWidth));
+            hm.put("canvas_height", String.valueOf(viewHeight));
+            copyFromJarTemplated("seadragon.html", path, hm);
             copyFromJar("img/fullpage_grouphover.png", path);
             copyFromJar("img/fullpage_hover.png", path);
             copyFromJar("img/fullpage_pressed.png", path);
@@ -198,6 +320,41 @@ public class SeadragonExporter implements Exporter, LongTask {
         } catch (Exception ex) {
             Logger.getLogger(SeadragonExporter.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    // http://stackoverflow.com/questions/309424/read-convert-an-inputstream-to-a-string
+    private String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
+    }
+    
+    private void writeStrToFile(File file, String str) {
+        try {
+            PrintWriter out = new PrintWriter(file);
+            out.print(str);
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private void copyFromJarTemplated(String source, File folder, Map kval) {
+        Set entries = kval.entrySet();
+        Iterator it = entries.iterator();
+        
+        // load the data
+        InputStream is = getClass().getResourceAsStream("/org/gephi/plugins/seadragon/resources/" + source);
+        String page = convertStreamToString(is);
+
+        while(it.hasNext()) {
+            Map.Entry e = (Map.Entry) it.next();
+            String key = (String) e.getKey();
+            String val = (String) e.getValue();
+            
+            page = page.replaceAll("\\{" + key + "\\}", val);
+        }
+        
+        writeStrToFile(new File(folder, source), page);
     }
     
     private void copyFromJar(String source, File folder) throws Exception {
@@ -274,6 +431,10 @@ public class SeadragonExporter implements Exporter, LongTask {
         this.path = path;
     }
     
+    public void setWalker(boolean bUse) {
+        this.bUseWalker = bUse;
+    }
+    
     @Override
     public boolean cancel() {
         this.cancel = true;
@@ -298,5 +459,18 @@ public class SeadragonExporter implements Exporter, LongTask {
         if (f.exists() && !f.delete()) {
             throw new IOException("Failed to delete file: " + f);
         }
+    }
+    
+    public void setView(int h, int w) {
+        this.viewHeight = h;
+        this.viewWidth = w;
+    }
+    
+    public int getViewWidth() {
+        return viewWidth;
+    }
+    
+    public int getViewHeight() {
+        return viewHeight;
     }
 }
