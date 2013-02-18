@@ -170,6 +170,8 @@ public class SeadragonExporterUI implements ExporterClassUI {
             this.height = (int) exporter.getHeight();
             this.tileSize = exporter.getTileSize();
             this.margin = exporter.getMargin();
+            this.viewHeight = exporter.getViewHeight();
+            this.viewWidth = exporter.getViewWidth();
 
             NbPreferences.forModule(SeadragonExporterUI.class).putInt(LAST_WIDTH, width);
             NbPreferences.forModule(SeadragonExporterUI.class).putInt(LAST_HEIGHT, height);
