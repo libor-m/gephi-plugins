@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+OpenIDE-Module: org.liborm.CCDisjoint
+OpenIDE-Module-Localizing-Bundle: org/liborm/CCDisjoint/Bundle.properties
+OpenIDE-Module-Specification-Version: 1.0
+
