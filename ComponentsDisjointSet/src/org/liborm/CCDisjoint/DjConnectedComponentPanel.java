@@ -48,10 +48,10 @@ import org.openide.util.Lookup;
  *
  * @author pjmcswee
  */
-public class ConnectedComponentPanel extends javax.swing.JPanel {
+public class DjConnectedComponentPanel extends javax.swing.JPanel {
 
     /** Creates new form ConnectedComponentPanel */
-    public ConnectedComponentPanel() {
+    public DjConnectedComponentPanel() {
         initComponents();
         
         //Disable directed if the graph is undirecteds
@@ -88,11 +88,12 @@ public class ConnectedComponentPanel extends javax.swing.JPanel {
         directedRadioButton = new javax.swing.JRadioButton();
         undirectedRadioButton = new javax.swing.JRadioButton();
 
-        header.setDescription(org.openide.util.NbBundle.getMessage(ConnectedComponentPanel.class, "ConnectedComponentPanel.header.description")); // NOI18N
-        header.setTitle(org.openide.util.NbBundle.getMessage(ConnectedComponentPanel.class, "ConnectedComponentPanel.header.title")); // NOI18N
+        header.setDescription(org.openide.util.NbBundle.getMessage(DjConnectedComponentPanel.class, "DjConnectedComponentPanel.header.description")); // NOI18N
+        header.setTitle(org.openide.util.NbBundle.getMessage(DjConnectedComponentPanel.class, "DjConnectedComponentPanel.header.title")); // NOI18N
 
         buttonGroup1.add(directedRadioButton);
-        directedRadioButton.setText(org.openide.util.NbBundle.getMessage(ConnectedComponentPanel.class, "ConnectedComponentPanel.directedRadioButton.text")); // NOI18N
+        directedRadioButton.setText(org.openide.util.NbBundle.getMessage(DjConnectedComponentPanel.class, "DjConnectedComponentPanel.directedRadioButton.text")); // NOI18N
+        directedRadioButton.setActionCommand(org.openide.util.NbBundle.getMessage(DjConnectedComponentPanel.class, "DjConnectedComponentPanel.directedRadioButton.text")); // NOI18N
         directedRadioButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 directedRadioButtonActionPerformed(evt);
@@ -100,7 +101,8 @@ public class ConnectedComponentPanel extends javax.swing.JPanel {
         });
 
         buttonGroup1.add(undirectedRadioButton);
-        undirectedRadioButton.setText(org.openide.util.NbBundle.getMessage(ConnectedComponentPanel.class, "ConnectedComponentPanel.undirectedRadioButton.text")); // NOI18N
+        undirectedRadioButton.setText(org.openide.util.NbBundle.getMessage(DjConnectedComponentPanel.class, "DjConnectedComponentPanel.undirectedRadioButton.text")); // NOI18N
+        undirectedRadioButton.setActionCommand(org.openide.util.NbBundle.getMessage(DjConnectedComponentPanel.class, "DjConnectedComponentPanel.undirectedRadioButton.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

@@ -52,7 +52,7 @@ import org.openide.util.lookup.ServiceProvider;
  * @author pjmcswee
  */
 @ServiceProvider(service=StatisticsBuilder.class)
-public class ConnectedComponentsBuilder implements StatisticsBuilder {
+public class DjConnectedComponentsBuilder implements StatisticsBuilder {
 
     public String getName() {
         return "CC:Disjoint";
@@ -60,10 +60,10 @@ public class ConnectedComponentsBuilder implements StatisticsBuilder {
     }
 
     public Statistics getStatistics() {
-        return new ConnectedComponents();
+        return new DjConnectedComponents();
     }
 
     public Class<? extends Statistics> getStatisticsClass() {
-        return ConnectedComponents.class;
+        return DjConnectedComponents.class;
     }
 }

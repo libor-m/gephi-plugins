@@ -53,18 +53,18 @@ import org.openide.util.lookup.ServiceProvider;
  * @author Patrick McSweeney
  */
 @ServiceProvider(service = StatisticsUI.class)
-public class ConnectedComponentUI implements StatisticsUI {
+public class DjConnectedComponentUI implements StatisticsUI {
 
-    private ConnectedComponentPanel panel;
-    private ConnectedComponents connectedComponents;
+    private DjConnectedComponentPanel panel;
+    private DjConnectedComponents connectedComponents;
 
     public JPanel getSettingsPanel() {
-        panel = new ConnectedComponentPanel();
+        panel = new DjConnectedComponentPanel();
         return panel;
     }
 
     public void setup(Statistics statistics) {
-        this.connectedComponents = (ConnectedComponents) statistics;
+        this.connectedComponents = (DjConnectedComponents) statistics;
         if (panel != null) {
             panel.setDirected(connectedComponents.isDirected());
         }
@@ -79,7 +79,7 @@ public class ConnectedComponentUI implements StatisticsUI {
     }
 
     public Class<? extends Statistics> getStatisticsClass() {
-        return ConnectedComponents.class;
+        return DjConnectedComponents.class;
     }
 
     public String getValue() {

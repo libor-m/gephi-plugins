@@ -81,7 +81,7 @@ import org.openide.util.Lookup;
  *
  * @author pjmcswee
  */
-public class ConnectedComponents implements Statistics, LongTask {
+public class DjConnectedComponents implements Statistics, LongTask {
 
     public static final String WEAKLY = "componentnumber";
     public static final String STRONG = "strongcompnum";
@@ -93,7 +93,7 @@ public class ConnectedComponents implements Statistics, LongTask {
     private int[] componentsSize;
     int count;
 
-    public ConnectedComponents() {
+    public DjConnectedComponents() {
         GraphController graphController = Lookup.getDefault().lookup(GraphController.class);
         if (graphController != null && graphController.getModel() != null) {
             isDirected = graphController.getModel().isDirected();
@@ -400,7 +400,7 @@ public class ConnectedComponents implements Statistics, LongTask {
                 + (isDirected ? "Number of Stronlgy Connected Components: " + stronglyCount + "<br>" : "")
                 + "<br /><br />"+imageFile
                 + "<br />" + "<h2> Algorithm: </h2>"
-                + "Robert Tarjan, <i>Depth-First Search and Linear Graph Algorithms</i>, in SIAM Journal on Computing 1 (2): 146–160 (1972)<br />"
+                + "Tarjan, Robert Endre (1975). <i>Efficiency of a Good But Not Linear Set Union Algorithm</i>. Journal of the ACM 22 (2): 215–225. doi:10.1145/321879.321884.<br />"
                 + "</BODY> </HTML>";
 
         return report;
