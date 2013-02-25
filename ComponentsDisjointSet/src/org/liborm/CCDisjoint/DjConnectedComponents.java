@@ -400,7 +400,8 @@ public class DjConnectedComponents implements Statistics, LongTask {
                 + (isDirected ? "Number of Stronlgy Connected Components: " + stronglyCount + "<br>" : "")
                 + "<br /><br />"+imageFile
                 + "<br />" + "<h2> Algorithm: </h2>"
-                + "Tarjan, Robert Endre (1975). <i>Efficiency of a Good But Not Linear Set Union Algorithm</i>. Journal of the ACM 22 (2): 215–225. doi:10.1145/321879.321884.<br />"
+                + "Robert Tarjan (1972): <i>Depth-First Search and Linear Graph Algorithms</i>, in SIAM Journal on Computing 1 (2): 146–160. doi:10.1137/0201010.<br />"
+                + "Robert Tarjan (1975): <i>Efficiency of a Good But Not Linear Set Union Algorithm</i>, in Journal of the ACM 22 (2): 215–225. doi:10.1145/321879.321884.<br />"
                 + "</BODY> </HTML>";
 
         return report;

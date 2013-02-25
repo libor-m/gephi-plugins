@@ -101,7 +101,7 @@ public class DjConnectedComponentUI implements StatisticsUI {
     }
 
     public String getShortDescription() {
-        return "CC:Disjoint";
-        //return NbBundle.getMessage(getClass(), "ConnectedComponentUI.shortDescription");
+        //return "CC:Disjoint";
+        return NbBundle.getMessage(getClass(), "OpenIDE-Module-Short-Description");
     }
 }
